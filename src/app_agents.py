@@ -308,6 +308,148 @@ def travel_types():
     return jsonify(TRAVEL_TYPES)
 
 # Health check endpoint
+@app.route('/traffic-enhanced-route', methods=['POST'])
+def optimize_route_with_traffic():
+    """
+    Phase 3: Enhanced route optimization with real-time traffic integration
+    """
+    try:
+        data = request.get_json()
+        logger.info(f"Traffic-enhanced route request: {data}")
+        
+        origin = data.get('origin')
+        destination = data.get('destination')
+        departure_time = data.get('departure_time')
+        preferences = data.get('preferences', {})
+        
+        if not origin or not destination:
+            return jsonify({
+                'status': 'error',
+                'message': 'Origin and destination are required'
+            }), 400
+        
+        # Use route optimizer agent directly for traffic integration
+        results = run_async(coordinator.route_optimizer.optimize_route_with_traffic(
+            origin=origin,
+            destination=destination,
+            departure_time=departure_time,
+            preferences=preferences
+        ))
+        
+        return jsonify(results)
+        
+    except Exception as e:
+        logger.error(f"Traffic-enhanced route error: {str(e)}")
+        return jsonify({
+            'status': 'error',
+            'message': f'Traffic-enhanced route optimization failed: {str(e)}',
+            'agent': 'RouteOptimizerAgent'
+        }), 500
+
+@app.route('/monitor-route', methods=['POST'])
+def monitor_route_conditions():
+    """
+    Phase 3: Real-time route monitoring with traffic alerts
+    """
+    try:
+        data = request.get_json()
+        logger.info(f"Route monitoring request: {data}")
+        
+        route_legs = data.get('route_legs', [])
+        monitoring_interval = data.get('monitoring_interval_minutes', 15)
+        
+        if not route_legs:
+            return jsonify({
+                'status': 'error',
+                'message': 'Route legs are required for monitoring'
+            }), 400
+        
+        # Use route optimizer agent for monitoring
+        results = run_async(coordinator.route_optimizer.monitor_route_conditions(
+            route_legs=route_legs,
+            monitoring_interval_minutes=monitoring_interval
+        ))
+        
+        return jsonify(results)
+        
+    except Exception as e:
+        logger.error(f"Route monitoring error: {str(e)}")
+        return jsonify({
+            'status': 'error',
+            'message': f'Route monitoring failed: {str(e)}',
+            'agent': 'RouteOptimizerAgent'
+        }), 500
+
+@app.route('/real-time-alternatives', methods=['POST'])
+def suggest_real_time_alternatives():
+    """
+    Phase 3: Dynamic route alternatives based on current traffic conditions
+    """
+    try:
+        data = request.get_json()
+        logger.info(f"Real-time alternatives request: {data}")
+        
+        current_route = data.get('current_route', {})
+        current_conditions = data.get('current_conditions', {})
+        
+        if not current_route.get('legs'):
+            return jsonify({
+                'status': 'error',
+                'message': 'Current route with legs is required'
+            }), 400
+        
+        # Use route optimizer agent for real-time alternatives
+        results = run_async(coordinator.route_optimizer.suggest_route_alternatives_real_time(
+            current_route=current_route,
+            current_conditions=current_conditions
+        ))
+        
+        return jsonify(results)
+        
+    except Exception as e:
+        logger.error(f"Real-time alternatives error: {str(e)}")
+        return jsonify({
+            'status': 'error',
+            'message': f'Real-time alternatives failed: {str(e)}',
+            'agent': 'RouteOptimizerAgent'
+        }), 500
+
+@app.route('/traffic-data', methods=['POST'])
+def get_traffic_data():
+    """
+    Phase 3: Get real-time traffic data for specific routes
+    """
+    try:
+        data = request.get_json()
+        logger.info(f"Traffic data request: {data}")
+        
+        origin = data.get('origin')
+        destination = data.get('destination')
+        transport_type = data.get('transport_type', 'car_rental')
+        
+        if not origin or not destination:
+            return jsonify({
+                'status': 'error',
+                'message': 'Origin and destination are required'
+            }), 400
+        
+        # Get traffic data from route optimizer agent
+        results = run_async(coordinator.route_optimizer.get_real_time_traffic_data(
+            origin=origin,
+            destination=destination,
+            transport_type=transport_type
+        ))
+        
+        return jsonify(results)
+        
+    except Exception as e:
+        logger.error(f"Traffic data error: {str(e)}")
+        return jsonify({
+            'status': 'error',
+            'message': f'Traffic data fetch failed: {str(e)}',
+            'agent': 'RouteOptimizerAgent'
+        }), 500
+
 @app.route('/health')
 def health_check():
     """
@@ -319,9 +461,10 @@ def health_check():
         return jsonify({
             'status': 'healthy',
             'timestamp': datetime.now().isoformat(),
-            'version': '2.0.0-agents',
-            'architecture': 'agent-based',
-            'agents': agent_status
+            'version': '3.0.0-traffic-enhanced',
+            'architecture': 'agent-based-with-traffic',
+            'agents': agent_status,
+            'phase': 'Phase 3 - Real-time Traffic Integration'
         })
         
     except Exception as e:
@@ -340,7 +483,9 @@ def not_found(error):
         'available_endpoints': [
             '/search', '/deals', '/track-prices', '/optimize-route',
             '/multi-city-route', '/price-trends', '/build-ui',
-            '/agent-status', '/travel-types', '/health'
+            '/agent-status', '/travel-types', '/health',
+            '/traffic-enhanced-route', '/monitor-route', 
+            '/real-time-alternatives', '/traffic-data'
         ]
     }), 404
 
@@ -353,16 +498,16 @@ def internal_error(error):
     }), 500
 
 if __name__ == '__main__':
-    print("Comprehensive Travel Assistant - Agent-Based Architecture")
-    print("=" * 65)
+    print("Comprehensive Travel Assistant - Phase 3: Real-Time Traffic Integration")
+    print("=" * 75)
     print("AGENTS ACTIVE:")
     print("  DataFetcherAgent: Handles all API calls and data retrieval")
-    print("  RouteOptimizerAgent: Optimizes routes and multi-city planning")
+    print("  RouteOptimizerAgent: Enhanced with real-time traffic integration")
     print("  DealHunterAgent: Finds deals and tracks prices")
     print("  UIBuilderAgent: Builds dynamic user interfaces")
     print("  AgentCoordinator: Orchestrates all agent interactions")
-    print("=" * 65)
-    print("ENDPOINTS:")
+    print("=" * 75)
+    print("CORE ENDPOINTS:")
     print("  POST /search - Comprehensive travel search")
     print("  POST /deals - Hunt for travel deals")
     print("  POST /track-prices - Set up price tracking")
@@ -370,11 +515,19 @@ if __name__ == '__main__':
     print("  POST /multi-city-route - Multi-city planning")
     print("  POST /price-trends - Price trend analysis")
     print("  POST /build-ui - Dynamic UI generation")
+    print("=" * 75)
+    print("PHASE 3 TRAFFIC FEATURES:")
+    print("  POST /traffic-enhanced-route - Route optimization with real-time traffic")
+    print("  POST /monitor-route - Continuous route monitoring with alerts")
+    print("  POST /real-time-alternatives - Dynamic re-routing suggestions")
+    print("  POST /traffic-data - Real-time traffic data for specific routes")
+    print("=" * 75)
+    print("SYSTEM ENDPOINTS:")
     print("  GET  /agent-status - Agent health status")
     print("  GET  /travel-types - Available travel types")
     print("  GET  /health - System health check")
-    print("=" * 65)
+    print("=" * 75)
     print("Web interface: http://localhost:5000")
-    print("Agent coordination ready!")
+    print("Phase 3 enhanced traffic integration ready!")
     
     app.run(debug=True, host='0.0.0.0', port=5000)
