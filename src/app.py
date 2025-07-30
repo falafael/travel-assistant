@@ -1,17 +1,18 @@
 #!/usr/bin/env python3
 """
-Comprehensive Travel Assistant - All Travel Types
-Supports flights, hotels, car rentals, trains, buses, cruises, tours, and more
+Comprehensive Travel Assistant - Agent-Based Architecture
+Uses specialized agents for data fetching, route optimization, deal hunting, and UI building
 """
 
-import requests
+import asyncio
 import json
-from datetime import datetime, timedelta
-from typing import Dict, List, Optional, Tuple
-import time
-from urllib.parse import quote
+from datetime import datetime
+from typing import Dict, List, Optional
 from flask import Flask, render_template, request, jsonify
 import logging
+
+# Import our agent coordinator
+from agents.agent_coordinator import AgentCoordinator
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -19,66 +20,62 @@ logger = logging.getLogger(__name__)
 
 app = Flask(__name__)
 
-class ComprehensiveTravelAssistant:
-    def __init__(self):
-        self.session = requests.Session()
-        self.session.headers.update({
-            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
-        })
-        
-        # All travel type configurations
-        self.travel_types = {
-            'flights': {
-                'name': 'Flights',
-                'apis': ['Skyscanner', 'Google Flights', 'Kayak', 'Expedia'],
-                'icon': '✈️'
-            },
-            'hotels': {
-                'name': 'Hotels & Accommodations', 
-                'apis': ['Booking.com', 'Hotels.com', 'Airbnb', 'Agoda'],
-                'icon': '🏨'
-            },
-            'car_rental': {
-                'name': 'Car Rentals',
-                'apis': ['Enterprise', 'Hertz', 'Budget', 'Avis'],
-                'icon': '🚗'
-            },
-            'trains': {
-                'name': 'Train Travel',
-                'apis': ['Amtrak', 'Eurail', 'Trainline', 'Rail Europe'],
-                'icon': '🚂'
-            },
-            'buses': {
-                'name': 'Bus Travel',
-                'apis': ['Greyhound', 'Megabus', 'FlixBus', 'BoltBus'],
-                'icon': '🚌'
-            },
-            'cruises': {
-                'name': 'Cruises',
-                'apis': ['Royal Caribbean', 'Carnival', 'Norwegian', 'Celebrity'],
-                'icon': '🚢'
-            },
-            'tours': {
-                'name': 'Tours & Activities',
-                'apis': ['Viator', 'GetYourGuide', 'Klook', 'TripAdvisor'],
-                'icon': '🎯'
-            },
-            'rideshare': {
-                'name': 'Rideshare & Taxis',
-                'apis': ['Uber', 'Lyft', 'Local Taxis'],
-                'icon': '🚕'
-            },
-            'flights_private': {
-                'name': 'Private Jets',
-                'apis': ['NetJets', 'Flexjet', 'JetSuite'],
-                'icon': '🛩️'
-            },
-            'rv_camping': {
-                'name': 'RV & Camping',
-                'apis': ['RVshare', 'Outdoorsy', 'KOA', 'Hipcamp'],
-                'icon': '🏕️'
-            }
-        }
+# Initialize the agent coordinator
+coordinator = AgentCoordinator()
+
+# Travel type configurations for the UI
+TRAVEL_TYPES = {
+    'flights': {
+        'name': 'Flights',
+        'apis': ['Skyscanner', 'Google Flights', 'Kayak', 'Expedia'],
+        'icon': '✈️'
+    },
+    'hotels': {
+        'name': 'Hotels & Accommodations', 
+        'apis': ['Booking.com', 'Hotels.com', 'Airbnb', 'Agoda'],
+        'icon': '🏨'
+    },
+    'car_rental': {
+        'name': 'Car Rentals',
+        'apis': ['Enterprise', 'Hertz', 'Budget', 'Avis'],
+        'icon': '🚗'
+    },
+    'trains': {
+        'name': 'Train Travel',
+        'apis': ['Amtrak', 'Eurail', 'Trainline', 'Rail Europe'],
+        'icon': '🚂'
+    },
+    'buses': {
+        'name': 'Bus Travel',
+        'apis': ['Greyhound', 'Megabus', 'FlixBus', 'BoltBus'],
+        'icon': '🚌'
+    },
+    'cruises': {
+        'name': 'Cruises',
+        'apis': ['Royal Caribbean', 'Carnival', 'Norwegian', 'Celebrity'],
+        'icon': '🚢'
+    },
+    'tours': {
+        'name': 'Tours & Activities',
+        'apis': ['Viator', 'GetYourGuide', 'Klook', 'TripAdvisor'],
+        'icon': '🎯'
+    },
+    'rideshare': {
+        'name': 'Rideshare & Taxis',
+        'apis': ['Uber', 'Lyft', 'Local Taxis'],
+        'icon': '🚕'
+    },
+    'flights_private': {
+        'name': 'Private Jets',
+        'apis': ['NetJets', 'Flexjet', 'JetSuite'],
+        'icon': '🛩️'
+    },
+    'rv_camping': {
+        'name': 'RV & Camping',
+        'apis': ['RVshare', 'Outdoorsy', 'KOA', 'Hipcamp'],
+        'icon': '🏕️'
+    }
+}
 
     def search_flights(self, origin: str, destination: str, departure_date: str, 
                       return_date: Optional[str] = None, passengers: int = 1) -> Dict:
