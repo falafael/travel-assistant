@@ -223,6 +223,153 @@ class RouteOptimizerAgent:
             logger.error(f"Route Optimizer Agent: Traffic-enhanced optimization error: {str(e)}")
             return {'status': 'error', 'message': f'Traffic optimization failed: {str(e)}'}
 
+    async def monitor_route_conditions(self, route_legs: List[Dict], 
+                                     monitoring_interval_minutes: int = 15) -> Dict:
+        """
+        Continuously monitor route conditions and provide updates
+        Phase 3 real-time monitoring feature
+        """
+        try:
+            logger.info(f"Route Optimizer Agent: Starting route monitoring for {len(route_legs)} legs")
+            
+            monitoring_data = {
+                'status': 'success',
+                'monitoring_started': datetime.now().isoformat(),
+                'legs': [],
+                'overall_status': 'monitoring',
+                'alerts': [],
+                'recommendations': [],
+                'agent': 'RouteOptimizerAgent'
+            }
+            
+            for i, leg in enumerate(route_legs):
+                origin = leg.get('origin')
+                destination = leg.get('destination')
+                transport_type = leg.get('transport_type', 'car_rental')
+                scheduled_departure = leg.get('departure_time', datetime.now().strftime('%H:%M'))
+                
+                # Get current traffic conditions
+                traffic_data = await self.get_real_time_traffic_data(origin, destination, transport_type)
+                
+                # Calculate impact on scheduled departure
+                impact_analysis = self._analyze_traffic_impact(leg, traffic_data, scheduled_departure)
+                
+                leg_monitoring = {
+                    'leg_number': i + 1,
+                    'route': f"{origin} → {destination}",
+                    'transport_type': transport_type,
+                    'scheduled_departure': scheduled_departure,
+                    'current_conditions': traffic_data.get('conditions', 'unknown'),
+                    'expected_delay': f"{traffic_data.get('delay_minutes', 0)} minutes",
+                    'impact': impact_analysis['severity'],
+                    'recommendations': impact_analysis['recommendations'],
+                    'last_checked': datetime.now().strftime('%H:%M:%S')
+                }
+                
+                monitoring_data['legs'].append(leg_monitoring)
+                
+                # Generate alerts for significant delays
+                if traffic_data.get('delay_minutes', 0) > 30:
+                    alert = {
+                        'type': 'traffic_delay',
+                        'leg': i + 1,
+                        'severity': 'high' if traffic_data['delay_minutes'] > 60 else 'medium',
+                        'message': f"Significant delay expected on {origin} → {destination}: {traffic_data['delay_minutes']} minutes",
+                        'timestamp': datetime.now().isoformat()
+                    }
+                    monitoring_data['alerts'].append(alert)
+            
+            # Generate overall recommendations
+            monitoring_data['recommendations'] = self._generate_monitoring_recommendations(monitoring_data)
+            
+            # Set overall status based on maximum delay
+            max_delay = max((leg.get('expected_delay', '0 minutes') for leg in monitoring_data['legs']), 
+                          key=lambda x: int(x.split()[0]) if x.split()[0].isdigit() else 0)
+            max_delay_minutes = int(max_delay.split()[0]) if max_delay.split()[0].isdigit() else 0
+            
+            if max_delay_minutes > 60:
+                monitoring_data['overall_status'] = 'major_delays'
+            elif max_delay_minutes > 30:
+                monitoring_data['overall_status'] = 'minor_delays'
+            else:
+                monitoring_data['overall_status'] = 'on_schedule'
+            
+            return monitoring_data
+            
+        except Exception as e:
+            logger.error(f"Route Optimizer Agent: Route monitoring error: {str(e)}")
+            return {'status': 'error', 'message': f'Route monitoring failed: {str(e)}'}
+
+    async def suggest_route_alternatives_real_time(self, current_route: Dict, 
+                                                 current_conditions: Dict = None) -> Dict:
+        """
+        Suggest real-time route alternatives based on current traffic conditions
+        Phase 3 dynamic re-routing feature
+        """
+        try:
+            logger.info("Route Optimizer Agent: Generating real-time route alternatives")
+            
+            legs = current_route.get('legs', [])
+            if not legs:
+                return {'status': 'error', 'message': 'No route legs provided'}
+            
+            alternatives = {
+                'status': 'success',
+                'current_route': current_route,
+                'real_time_alternatives': [],
+                'priority_changes': [],
+                'estimated_savings': {},
+                'agent': 'RouteOptimizerAgent'
+            }
+            
+            for i, leg in enumerate(legs):
+                origin = leg.get('origin')
+                destination = leg.get('destination')
+                current_transport = leg.get('transport_type')
+                departure_time = leg.get('departure_time', datetime.now().strftime('%H:%M'))
+                
+                # Get real-time conditions for current route
+                current_traffic = await self.get_real_time_traffic_data(origin, destination, current_transport)
+                
+                # Check alternative transport modes with current traffic
+                alternative_options = []
+                distance_km = self._calculate_distance(origin, destination)
+                
+                for transport_type, config in self.transport_configs.items():
+                    if transport_type != current_transport and self._is_transport_viable(transport_type, distance_km, origin, destination):
+                        # Get traffic data for alternative
+                        alt_traffic = await self.get_real_time_traffic_data(origin, destination, transport_type)
+                        
+                        # Calculate alternative option with traffic
+                        base_option = self._calculate_transport_option(
+                            transport_type, origin, destination, distance_km, 
+                            datetime.now().strftime('%Y-%m-%d'), config
+                        )
+                        
+                        # Apply traffic impact
+                        enhanced_option = await self._apply_traffic_to_option(base_option, alt_traffic, departure_time)
+                        alternative_options.append(enhanced_option)
+                
+                # Find better alternatives
+                if alternative_options and current_traffic.get('delay_minutes', 0) > 15:
+                    better_alternatives = sorted(alternative_options, 
+                                               key=lambda x: x.get('real_time_duration_hours', x['duration_hours']))[:3]
+                    
+                    leg_alternatives = {
+                        'leg_number': i + 1,
+                        'current_route': f"{origin} → {destination} ({current_transport})",
+                        'current_conditions': current_traffic.get('conditions', 'unknown'),
+                        'current_delay': f"{current_traffic.get('delay_minutes', 0)} minutes",
+                        'better_alternatives': better_alternatives
+                    }
+                    alternatives['real_time_alternatives'].append(leg_alternatives)
+            
+            return alternatives
+            
+        except Exception as e:
+            logger.error(f"Route Optimizer Agent: Real-time alternatives error: {str(e)}")
+            return {'status': 'error', 'message': f'Real-time alternatives failed: {str(e)}'}
+
     # Helper methods for traffic integration
     
     def _get_cached_traffic_data(self, cache_key: str) -> Optional[Dict]:
@@ -372,6 +519,64 @@ class RouteOptimizerAgent:
             'max_delay_minutes': max((opt.get('traffic_delay_minutes', 0) for opt in options), default=0),
             'traffic_status': 'heavy' if total_delays > 120 else 'moderate' if total_delays > 60 else 'light'
         }
+    
+    def _analyze_traffic_impact(self, leg: Dict, traffic_data: Dict, scheduled_departure: str) -> Dict:
+        """Analyze traffic impact on a specific leg"""
+        delay_minutes = traffic_data.get('delay_minutes', 0)
+        
+        if delay_minutes < 15:
+            severity = 'low'
+            recommendations = ['No action needed', 'Depart as scheduled']
+        elif delay_minutes < 45:
+            severity = 'medium'
+            recommendations = [
+                f'Consider departing {delay_minutes // 2} minutes earlier',
+                'Monitor conditions before departure',
+                'Consider alternative transport if available'
+            ]
+        else:
+            severity = 'high'
+            recommendations = [
+                f'Strongly recommend departing {delay_minutes} minutes earlier',
+                'Consider alternative transport options',
+                'Check for route alternatives',
+                'Notify any connecting services of potential delay'
+            ]
+        
+        return {
+            'severity': severity,
+            'delay_minutes': delay_minutes,
+            'recommendations': recommendations
+        }
+    
+    def _generate_monitoring_recommendations(self, monitoring_data: Dict) -> List[Dict]:
+        """Generate recommendations based on monitoring data"""
+        recommendations = []
+        
+        # Check for legs with significant delays
+        for leg in monitoring_data.get('legs', []):
+            delay_str = leg.get('expected_delay', '0 minutes')
+            delay_minutes = int(delay_str.split()[0]) if delay_str.split()[0].isdigit() else 0
+            
+            if delay_minutes > 30:
+                recommendations.append({
+                    'type': 'departure_adjustment',
+                    'priority': 'high',
+                    'leg': leg['leg_number'],
+                    'message': f"Consider departing {delay_minutes // 2} minutes earlier for {leg['route']}",
+                    'estimated_improvement': f"{delay_minutes // 2} minutes"
+                })
+        
+        # Overall route recommendations
+        if len(monitoring_data.get('alerts', [])) > 2:
+            recommendations.append({
+                'type': 'route_review',
+                'priority': 'high',
+                'message': 'Multiple delays detected - consider reviewing entire route',
+                'action': 'Run real-time route alternatives analysis'
+            })
+        
+        return recommendations
 
     # Utility methods
     

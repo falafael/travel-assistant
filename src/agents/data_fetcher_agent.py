@@ -191,6 +191,65 @@ class DataFetcherAgent:
             logger.error(f"Data Fetcher Agent: Activity fetch error: {str(e)}")
             return self._error_response(f"Activity data fetch failed: {str(e)}")
 
+    async def fetch_cruise_data(self, cruise_params: Dict) -> Dict:
+        """
+        Fetch cruise data from travel APIs (simulated for now)
+        """
+        try:
+            logger.info("Data Fetcher Agent: Fetching cruise data")
+            
+            # Simulate cruise data
+            cruise_results = []
+            
+            # Generate sample cruise data
+            cruise_lines = ['Royal Caribbean', 'Carnival', 'Norwegian', 'Celebrity', 'MSC']
+            ships = ['Oasis', 'Symphony', 'Wonder', 'Explorer', 'Voyager']
+            
+            for i in range(3):  # Generate 3 cruise options
+                cruise = {
+                    'cruise_id': f'cruise_{i+1}',
+                    'cruise_line': cruise_lines[i % len(cruise_lines)],
+                    'ship_name': f"{ships[i % len(ships)]} of the Seas",
+                    'itinerary': {
+                        'departure_port': cruise_params.get('origin_port', 'Miami'),
+                        'destinations': ['Cozumel', 'Jamaica', 'Grand Cayman'],
+                        'duration_days': 7 + (i * 2)
+                    },
+                    'dates': {
+                        'departure': cruise_params.get('departure_date', '2025-08-15'),
+                        'return': '2025-08-22'
+                    },
+                    'pricing': {
+                        'interior': 599 + (i * 100),
+                        'oceanview': 799 + (i * 120),
+                        'balcony': 999 + (i * 150),
+                        'suite': 1499 + (i * 200)
+                    },
+                    'amenities': ['All-inclusive dining', 'Entertainment', 'Pool deck', 'Spa'],
+                    'booking_info': {
+                        'booking_url': f'https://www.cruise.com/book/{cruise_lines[i % len(cruise_lines)].lower().replace(" ", "")}/cruise_{i+1}',
+                        'phone': '1-800-CRUISE',
+                        'cancellation_policy': 'Free cancellation up to 60 days before departure'
+                    }
+                }
+                cruise_results.append(cruise)
+
+            # Normalize results
+            normalized_results = {
+                'status': 'success',
+                'results': cruise_results,
+                'total_found': len(cruise_results),
+                'search_params': cruise_params,
+                'data_source': 'simulated_cruise_api',
+                'timestamp': datetime.now().isoformat()
+            }
+            
+            return normalized_results
+            
+        except Exception as e:
+            logger.error(f"Data Fetcher Agent: Cruise fetch error: {str(e)}")
+            return self._error_response(f"Cruise data fetch failed: {str(e)}")
+
     async def _fetch_from_source(self, source: str, data_type: str, params: Dict) -> Dict:
         """
         Generic method to fetch data from a specific source
@@ -536,14 +595,14 @@ class DataFetcherAgent:
         
         fetch_tasks = []
         
-        # Add tasks based on requested data types
-        if search_params.get('include_flights', False):
+        # Add tasks based on requested data types (default to all if not specified)
+        if search_params.get('include_flights', True):  # Default to True
             fetch_tasks.append(('flights', self.fetch_flight_data(search_params)))
         
-        if search_params.get('include_hotels', False):
+        if search_params.get('include_hotels', True):  # Default to True
             fetch_tasks.append(('hotels', self.fetch_hotel_data(search_params)))
         
-        if search_params.get('include_ground_transport', False):
+        if search_params.get('include_ground_transport', True):  # Default to True
             ground_params = {
                 'pickup': search_params.get('origin'),
                 'dropoff': search_params.get('destination'),
@@ -551,12 +610,21 @@ class DataFetcherAgent:
             }
             fetch_tasks.append(('ground_transportation', self.fetch_ground_transport_data(ground_params)))
         
-        if search_params.get('include_activities', False):
+        if search_params.get('include_activities', True):  # Default to True
             activity_params = {
                 'destination': search_params.get('destination'),
                 'activity_type': search_params.get('activity_type', 'all')
             }
             fetch_tasks.append(('tours_activities', self.fetch_activity_data(activity_params)))
+        
+        # Add cruises by default
+        if search_params.get('include_cruises', True):  # Default to True
+            cruise_params = {
+                'origin_port': search_params.get('origin'),
+                'destination_region': search_params.get('destination'),
+                'departure_date': search_params.get('departure_date')
+            }
+            fetch_tasks.append(('cruises', self.fetch_cruise_data(cruise_params)))
         
         if not fetch_tasks:
             return self._error_response("No data types requested")

@@ -100,18 +100,19 @@ class AgentCoordinator:
             )
             ui_results = await ui_task
             
-            # Aggregate all results
+            # Extract travel data results for frontend compatibility
+            travel_data = data_results if isinstance(data_results, dict) else {'status': 'error', 'message': str(data_results)}
+            
+            # Aggregate all results in frontend-expected format
             comprehensive_results = {
                 'status': 'success',
                 'coordination_type': 'comprehensive_search',
                 'timestamp': datetime.now().isoformat(),
                 'search_params': search_params,
-                'results': {
-                    'travel_data': data_results if isinstance(data_results, dict) else {'status': 'error', 'message': str(data_results)},
-                    'deals': deal_results if isinstance(deal_results, dict) else {'status': 'error', 'message': str(deal_results)},
-                    'route_optimization': route_results,
-                    'ui_components': ui_results if isinstance(ui_results, dict) else {'status': 'error', 'message': str(ui_results)}
-                },
+                'results': travel_data.get('results', travel_data),  # Extract nested results for frontend compatibility
+                'deals': deal_results if isinstance(deal_results, dict) else {'status': 'error', 'message': str(deal_results)},
+                'route_optimization': route_results,
+                'ui_components': ui_results if isinstance(ui_results, dict) else {'status': 'error', 'message': str(ui_results)},
                 'agent_performance': self._get_agent_performance_summary(),
                 'coordinator': 'AgentCoordinator'
             }
