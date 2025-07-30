@@ -1,0 +1,719 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🌍 Comprehensive Travel Assistant</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        .header {
+            text-align: center;
+            color: white;
+            margin-bottom: 30px;
+        }
+        
+        .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+        }
+        
+        .header p {
+            font-size: 1.2rem;
+            opacity: 0.9;
+        }
+        
+        .travel-types {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 30px;
+        }
+        
+        .travel-type {
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 10px;
+            padding: 15px;
+            text-align: center;
+            color: white;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .travel-type:hover {
+            background: rgba(255, 255, 255, 0.2);
+            transform: translateY(-2px);
+        }
+        
+        .travel-type.active {
+            background: rgba(255, 255, 255, 0.3);
+            border-color: rgba(255, 255, 255, 0.5);
+        }
+        
+        .travel-type .icon {
+            font-size: 2rem;
+            margin-bottom: 10px;
+        }
+        
+        .search-form {
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+            margin-bottom: 30px;
+        }
+        
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+        
+        .form-group {
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .form-group label {
+            font-weight: 600;
+            margin-bottom: 5px;
+            color: #555;
+        }
+        
+        .form-group input, .form-group select {
+            padding: 12px;
+            border: 2px solid #e1e5e9;
+            border-radius: 8px;
+            font-size: 16px;
+            transition: border-color 0.3s ease;
+        }
+        
+        .form-group input:focus, .form-group select:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+        
+        .search-btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 15px 40px;
+            border-radius: 25px;
+            font-size: 18px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.3s ease;
+            display: block;
+            margin: 0 auto;
+        }
+        
+        .search-btn:hover {
+            transform: translateY(-2px);
+        }
+        
+        .search-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+        
+        .results {
+            display: none;
+        }
+        
+        .results.show {
+            display: block;
+        }
+        
+        .result-section {
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            margin-bottom: 20px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        }
+        
+        .result-section h2 {
+            color: #333;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #f0f0f0;
+        }
+        
+        .result-item {
+            border: 1px solid #e1e5e9;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 15px;
+            transition: all 0.3s ease;
+        }
+        
+        .result-item:hover {
+            border-color: #667eea;
+            box-shadow: 0 3px 10px rgba(102, 126, 234, 0.1);
+        }
+        
+        .result-header {
+            display: flex;
+            justify-content: between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+        
+        .result-title {
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: #333;
+        }
+        
+        .result-price {
+            font-size: 1.3rem;
+            font-weight: 700;
+            color: #667eea;
+        }
+        
+        .result-details {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 15px;
+        }
+        
+        .detail-item {
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .detail-label {
+            font-size: 0.9rem;
+            color: #666;
+            margin-bottom: 3px;
+        }
+        
+        .detail-value {
+            font-weight: 600;
+            color: #333;
+        }
+        
+        .amenities {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-bottom: 15px;
+        }
+        
+        .amenity {
+            background: #f8f9fa;
+            border: 1px solid #e9ecef;
+            border-radius: 20px;
+            padding: 5px 12px;
+            font-size: 0.9rem;
+            color: #666;
+        }
+        
+        .book-btn {
+            background: #28a745;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            text-decoration: none;
+            display: inline-block;
+            font-weight: 600;
+            transition: background-color 0.3s ease;
+        }
+        
+        .book-btn:hover {
+            background: #218838;
+        }
+        
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #666;
+        }
+        
+        .spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #667eea;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+            border-radius: 5px;
+            padding: 15px;
+            margin: 20px 0;
+        }
+        
+        @media (max-width: 768px) {
+            .header h1 {
+                font-size: 2rem;
+            }
+            
+            .form-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .result-details {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🌍 Comprehensive Travel Assistant</h1>
+            <p>Find flights, hotels, car rentals, trains, buses, cruises, tours & more!</p>
+        </div>
+
+        <div class="travel-types" id="travelTypes">
+            <div class="travel-type active" data-type="flights">
+                <div class="icon">✈️</div>
+                <div>Flights</div>
+            </div>
+            <div class="travel-type active" data-type="hotels">
+                <div class="icon">🏨</div>
+                <div>Hotels</div>
+            </div>
+            <div class="travel-type active" data-type="ground_transport">
+                <div class="icon">🚗</div>
+                <div>Ground Transport</div>
+            </div>
+            <div class="travel-type" data-type="cruises">
+                <div class="icon">🚢</div>
+                <div>Cruises</div>
+            </div>
+            <div class="travel-type active" data-type="activities">
+                <div class="icon">🎯</div>
+                <div>Tours & Activities</div>
+            </div>
+            <div class="travel-type" data-type="rv_camping">
+                <div class="icon">🏕️</div>
+                <div>RV & Camping</div>
+            </div>
+        </div>
+
+        <div class="search-form">
+            <form id="searchForm">
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label for="origin">From (City/Airport)</label>
+                        <input type="text" id="origin" name="origin" placeholder="New York, NY" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="destination">To (City/Airport)</label>
+                        <input type="text" id="destination" name="destination" placeholder="Los Angeles, CA" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="departureDate">Departure Date</label>
+                        <input type="date" id="departureDate" name="departure_date" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="returnDate">Return Date (Optional)</label>
+                        <input type="date" id="returnDate" name="return_date">
+                    </div>
+                    <div class="form-group">
+                        <label for="passengers">Passengers/Guests</label>
+                        <input type="number" id="passengers" name="passengers" min="1" max="20" value="2">
+                    </div>
+                    <div class="form-group">
+                        <label for="rooms">Rooms</label>
+                        <input type="number" id="rooms" name="rooms" min="1" max="10" value="1">
+                    </div>
+                </div>
+                
+                <div class="form-grid" id="cruiseFields" style="display:none;">
+                    <div class="form-group">
+                        <label for="departurePort">Departure Port</label>
+                        <input type="text" id="departurePort" name="departure_port" placeholder="Miami, FL">
+                    </div>
+                    <div class="form-group">
+                        <label for="cruiseDuration">Cruise Duration (Days)</label>
+                        <input type="number" id="cruiseDuration" name="cruise_duration" min="3" max="21" value="7">
+                    </div>
+                </div>
+
+                <button type="submit" class="search-btn" id="searchBtn">
+                    🔍 Search All Travel Options
+                </button>
+            </form>
+        </div>
+
+        <div class="results" id="results">
+            <div class="loading" id="loading">
+                <div class="spinner"></div>
+                <p>Searching across all travel platforms...</p>
+            </div>
+            <div id="resultsContent"></div>
+        </div>
+    </div>
+
+    <script>
+        // Initialize the app
+        document.addEventListener('DOMContentLoaded', function() {
+            initializeTravelTypes();
+            initializeForm();
+            setMinDate();
+        });
+
+        function initializeTravelTypes() {
+            const travelTypes = document.querySelectorAll('.travel-type');
+            travelTypes.forEach(type => {
+                type.addEventListener('click', function() {
+                    this.classList.toggle('active');
+                    updateFormVisibility();
+                });
+            });
+        }
+
+        function updateFormVisibility() {
+            const activeCruises = document.querySelector('.travel-type[data-type="cruises"]').classList.contains('active');
+            const cruiseFields = document.getElementById('cruiseFields');
+            cruiseFields.style.display = activeCruises ? 'grid' : 'none';
+        }
+
+        function initializeForm() {
+            document.getElementById('searchForm').addEventListener('submit', handleSearch);
+        }
+
+        function setMinDate() {
+            const today = new Date().toISOString().split('T')[0];
+            document.getElementById('departureDate').setAttribute('min', today);
+            document.getElementById('returnDate').setAttribute('min', today);
+        }
+
+        async function handleSearch(e) {
+            e.preventDefault();
+            
+            const searchBtn = document.getElementById('searchBtn');
+            const results = document.getElementById('results');
+            const loading = document.getElementById('loading');
+            const resultsContent = document.getElementById('resultsContent');
+            
+            // Show loading state
+            searchBtn.disabled = true;
+            searchBtn.textContent = 'Searching...';
+            results.classList.add('show');
+            loading.style.display = 'block';
+            resultsContent.innerHTML = '';
+            
+            try {
+                // Collect form data
+                const formData = new FormData(e.target);
+                const searchParams = Object.fromEntries(formData);
+                
+                // Add active travel types
+                const activeTravelTypes = Array.from(document.querySelectorAll('.travel-type.active'))
+                    .map(el => el.dataset.type);
+                
+                searchParams.include_flights = activeTravelTypes.includes('flights');
+                searchParams.include_hotels = activeTravelTypes.includes('hotels');
+                searchParams.include_ground_transport = activeTravelTypes.includes('ground_transport');
+                searchParams.include_cruises = activeTravelTypes.includes('cruises');
+                searchParams.include_activities = activeTravelTypes.includes('activities');
+                
+                // Set checkin/checkout dates for hotels
+                if (searchParams.departure_date) {
+                    searchParams.checkin = searchParams.departure_date;
+                }
+                if (searchParams.return_date) {
+                    searchParams.checkout = searchParams.return_date;
+                } else if (searchParams.departure_date) {
+                    // Default to 3 nights if no return date
+                    const checkinDate = new Date(searchParams.departure_date);
+                    checkinDate.setDate(checkinDate.getDate() + 3);
+                    searchParams.checkout = checkinDate.toISOString().split('T')[0];
+                }
+                
+                // Make API request
+                const response = await fetch('/search', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(searchParams)
+                });
+                
+                const data = await response.json();
+                
+                // Hide loading
+                loading.style.display = 'none';
+                
+                if (data.status === 'error') {
+                    throw new Error(data.message);
+                }
+                
+                // Display results
+                displayResults(data.results);
+                
+            } catch (error) {
+                loading.style.display = 'none';
+                resultsContent.innerHTML = `
+                    <div class="error">
+                        <strong>Search Error:</strong> ${error.message}
+                    </div>
+                `;
+            } finally {
+                searchBtn.disabled = false;
+                searchBtn.innerHTML = '🔍 Search All Travel Options';
+            }
+        }
+
+        function displayResults(results) {
+            const resultsContent = document.getElementById('resultsContent');
+            let html = '';
+            
+            // Display flights
+            if (results.flights && results.flights.status === 'success') {
+                html += `
+                    <div class="result-section">
+                        <h2>✈️ Flight Options</h2>
+                        ${results.flights.results.map(flight => `
+                            <div class="result-item">
+                                <div class="result-header">
+                                    <div class="result-title">${flight.airline} ${flight.flight_number}</div>
+                                    <div class="result-price">${flight.price}</div>
+                                </div>
+                                <div class="result-details">
+                                    <div class="detail-item">
+                                        <div class="detail-label">Departure</div>
+                                        <div class="detail-value">${flight.departure_time}</div>
+                                    </div>
+                                    <div class="detail-item">
+                                        <div class="detail-label">Arrival</div>
+                                        <div class="detail-value">${flight.arrival_time}</div>
+                                    </div>
+                                    <div class="detail-item">
+                                        <div class="detail-label">Duration</div>
+                                        <div class="detail-value">${flight.duration}</div>
+                                    </div>
+                                    <div class="detail-item">
+                                        <div class="detail-label">Stops</div>
+                                        <div class="detail-value">${flight.stops}</div>
+                                    </div>
+                                    <div class="detail-item">
+                                        <div class="detail-label">Aircraft</div>
+                                        <div class="detail-value">${flight.aircraft}</div>
+                                    </div>
+                                </div>
+                                <a href="${flight.booking_url}" target="_blank" class="book-btn">Book Flight</a>
+                            </div>
+                        `).join('')}
+                    </div>
+                `;
+            }
+            
+            // Display hotels
+            if (results.hotels && results.hotels.status === 'success') {
+                html += `
+                    <div class="result-section">
+                        <h2>🏨 Accommodation Options</h2>
+                        ${results.hotels.results.map(hotel => `
+                            <div class="result-item">
+                                <div class="result-header">
+                                    <div class="result-title">${hotel.name} (${hotel.type})</div>
+                                    <div class="result-price">${hotel.total_price}</div>
+                                </div>
+                                <div class="result-details">
+                                    <div class="detail-item">
+                                        <div class="detail-label">Rating</div>
+                                        <div class="detail-value">⭐ ${hotel.rating}</div>
+                                    </div>
+                                    <div class="detail-item">
+                                        <div class="detail-label">Per Night</div>
+                                        <div class="detail-value">${hotel.price_per_night}</div>
+                                    </div>
+                                    <div class="detail-item">
+                                        <div class="detail-label">Distance</div>
+                                        <div class="detail-value">${hotel.distance_from_center}</div>
+                                    </div>
+                                    <div class="detail-item">
+                                        <div class="detail-label">Guest Rating</div>
+                                        <div class="detail-value">${hotel.guest_rating}</div>
+                                    </div>
+                                </div>
+                                <div class="amenities">
+                                    ${hotel.amenities.map(amenity => `<span class="amenity">${amenity}</span>`).join('')}
+                                </div>
+                                <a href="${hotel.booking_url}" target="_blank" class="book-btn">Book Hotel</a>
+                            </div>
+                        `).join('')}
+                    </div>
+                `;
+            }
+            
+            // Display ground transportation
+            if (results.ground_transportation && results.ground_transportation.status === 'success') {
+                html += `
+                    <div class="result-section">
+                        <h2>🚗 Ground Transportation Options</h2>
+                        ${results.ground_transportation.results.map(transport => `
+                            <div class="result-item">
+                                <div class="result-header">
+                                    <div class="result-title">${transport.provider} - ${transport.type}</div>
+                                    <div class="result-price">${transport.price || transport.price_per_day || transport.price_estimate}</div>
+                                </div>
+                                <div class="result-details">
+                                    ${transport.vehicle ? `
+                                        <div class="detail-item">
+                                            <div class="detail-label">Vehicle</div>
+                                            <div class="detail-value">${transport.vehicle}</div>
+                                        </div>
+                                    ` : ''}
+                                    ${transport.duration ? `
+                                        <div class="detail-item">
+                                            <div class="detail-label">Duration</div>
+                                            <div class="detail-value">${transport.duration}</div>
+                                        </div>
+                                    ` : ''}
+                                    ${transport.departure ? `
+                                        <div class="detail-item">
+                                            <div class="detail-label">Departure</div>
+                                            <div class="detail-value">${transport.departure}</div>
+                                        </div>
+                                    ` : ''}
+                                    ${transport.total_estimated ? `
+                                        <div class="detail-item">
+                                            <div class="detail-label">Total Est.</div>
+                                            <div class="detail-value">${transport.total_estimated}</div>
+                                        </div>
+                                    ` : ''}
+                                </div>
+                                ${transport.features ? `
+                                    <div class="amenities">
+                                        ${transport.features.map(feature => `<span class="amenity">${feature}</span>`).join('')}
+                                    </div>
+                                ` : ''}
+                                <a href="${transport.booking_url}" target="_blank" class="book-btn">Book Now</a>
+                            </div>
+                        `).join('')}
+                    </div>
+                `;
+            }
+            
+            // Display cruises
+            if (results.cruises && results.cruises.status === 'success') {
+                html += `
+                    <div class="result-section">
+                        <h2>🚢 Cruise Options</h2>
+                        ${results.cruises.results.map(cruise => `
+                            <div class="result-item">
+                                <div class="result-header">
+                                    <div class="result-title">${cruise.cruise_line} - ${cruise.ship}</div>
+                                    <div class="result-price">${cruise.price_per_person}</div>
+                                </div>
+                                <div class="result-details">
+                                    <div class="detail-item">
+                                        <div class="detail-label">Duration</div>
+                                        <div class="detail-value">${cruise.duration}</div>
+                                    </div>
+                                    <div class="detail-item">
+                                        <div class="detail-label">Route</div>
+                                        <div class="detail-value">${cruise.route}</div>
+                                    </div>
+                                    <div class="detail-item">
+                                        <div class="detail-label">Cabin Type</div>
+                                        <div class="detail-value">${cruise.cabin_type}</div>
+                                    </div>
+                                    <div class="detail-item">
+                                        <div class="detail-label">Departure</div>
+                                        <div class="detail-value">${cruise.departure_date}</div>
+                                    </div>
+                                </div>
+                                <div class="amenities">
+                                    ${cruise.ports.map(port => `<span class="amenity">📍 ${port}</span>`).join('')}
+                                </div>
+                                <div class="amenities">
+                                    ${cruise.amenities.map(amenity => `<span class="amenity">${amenity}</span>`).join('')}
+                                </div>
+                                <a href="${cruise.booking_url}" target="_blank" class="book-btn">Book Cruise</a>
+                            </div>
+                        `).join('')}
+                    </div>
+                `;
+            }
+            
+            // Display tours and activities
+            if (results.tours_activities && results.tours_activities.status === 'success') {
+                html += `
+                    <div class="result-section">
+                        <h2>🎯 Tours & Activities</h2>
+                        ${results.tours_activities.results.map(activity => `
+                            <div class="result-item">
+                                <div class="result-header">
+                                    <div class="result-title">${activity.name}</div>
+                                    <div class="result-price">${activity.price}</div>
+                                </div>
+                                <div class="result-details">
+                                    <div class="detail-item">
+                                        <div class="detail-label">Provider</div>
+                                        <div class="detail-value">${activity.provider}</div>
+                                    </div>
+                                    <div class="detail-item">
+                                        <div class="detail-label">Type</div>
+                                        <div class="detail-value">${activity.type}</div>
+                                    </div>
+                                    <div class="detail-item">
+                                        <div class="detail-label">Duration</div>
+                                        <div class="detail-value">${activity.duration}</div>
+                                    </div>
+                                    <div class="detail-item">
+                                        <div class="detail-label">Rating</div>
+                                        <div class="detail-value">⭐ ${activity.rating}</div>
+                                    </div>
+                                    <div class="detail-item">
+                                        <div class="detail-label">Group Size</div>
+                                        <div class="detail-value">${activity.group_size}</div>
+                                    </div>
+                                </div>
+                                <div class="amenities">
+                                    ${activity.highlights.map(highlight => `<span class="amenity">${highlight}</span>`).join('')}
+                                </div>
+                                <a href="${activity.booking_url}" target="_blank" class="book-btn">Book Activity</a>
+                            </div>
+                        `).join('')}
+                    </div>
+                `;
+            }
+            
+            if (html === '') {
+                html = '<div class="error">No results found. Please try adjusting your search criteria.</div>';
+            }
+            
+            resultsContent.innerHTML = html;
+        }
+    </script>
+</body>
+</html>
