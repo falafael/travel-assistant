@@ -11,6 +11,170 @@
             box-sizing: border-box;
         }
         
+        /* Map Styles */
+        #map-container {
+            height: 500px;
+            width: 100%;
+            border-radius: 15px;
+            overflow: hidden;
+            margin: 20px 0;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+            position: relative;
+        }
+        
+        #travel-map {
+            height: 100%;
+            width: 100%;
+        }
+        
+        .map-control {
+            background: white;
+            border-radius: 8px;
+            padding: 8px;
+            margin: 10px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+        
+        .map-control button {
+            background: #f8f9fa;
+            border: 1px solid #e9ecef;
+            border-radius: 6px;
+            padding: 8px 12px;
+            margin: 2px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.2s ease;
+        }
+        
+        .map-control button:hover {
+            background: #e9ecef;
+        }
+        
+        .map-control button.active {
+            background: var(--primary-color);
+            color: white;
+            border-color: var(--primary-color);
+        }
+        
+        .map-info-window {
+            max-width: 300px;
+            padding: 10px;
+        }
+        
+        .map-info-window .info-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+        
+        .map-info-window h3 {
+            margin: 0;
+            color: #333;
+            font-size: 16px;
+        }
+        
+        .map-info-window .rating {
+            background: #4CAF50;
+            color: white;
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-size: 12px;
+        }
+        
+        .map-info-window .address {
+            color: #666;
+            font-size: 14px;
+            margin: 5px 0;
+        }
+        
+        .map-info-window .description {
+            font-size: 14px;
+            line-height: 1.4;
+            margin: 8px 0;
+        }
+        
+        .map-info-window .price {
+            font-weight: bold;
+            color: var(--primary-color);
+            font-size: 16px;
+            margin: 8px 0;
+        }
+        
+        .map-info-window .book-btn {
+            background: var(--success-color);
+            color: white;
+            padding: 8px 16px;
+            text-decoration: none;
+            border-radius: 6px;
+            display: inline-block;
+            margin: 5px 5px 0 0;
+            font-size: 14px;
+        }
+        
+        .map-info-window .website-link {
+            color: var(--primary-color);
+            text-decoration: none;
+            font-size: 14px;
+        }
+        
+        .route-info-popup {
+            padding: 10px;
+            min-width: 200px;
+        }
+        
+        .route-info-popup h4 {
+            margin: 0 0 8px 0;
+            color: #333;
+        }
+        
+        .route-info-popup p {
+            margin: 4px 0;
+            font-size: 14px;
+        }
+        
+        .map-legend {
+            position: absolute;
+            bottom: 20px;
+            left: 20px;
+            background: white;
+            padding: 15px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            z-index: 1000;
+        }
+        
+        .legend-item {
+            display: flex;
+            align-items: center;
+            margin: 5px 0;
+            font-size: 14px;
+        }
+        
+        .legend-color {
+            width: 20px;
+            height: 3px;
+            margin-right: 10px;
+            border-radius: 2px;
+        }
+        
+        .map-toggle {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            z-index: 1000;
+        }
+        
+        .map-toggle button {
+            background: white;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            cursor: pointer;
+            font-size: 14px;
+        }
+        
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
             line-height: 1.6;
@@ -371,6 +535,36 @@
             </form>
         </div>
 
+        <!-- Interactive Map Section -->
+        <div id="map-section" class="map-section" style="display: none;">
+            <h2>🗺️ Interactive Route Map</h2>
+            <div id="map-container">
+                <div id="travel-map"></div>
+                <div class="map-legend">
+                    <h4>Route Legend</h4>
+                    <div class="legend-item">
+                        <div class="legend-color" style="background: #FF6B6B;"></div>
+                        <span>Flights</span>
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-color" style="background: #4ECDC4;"></div>
+                        <span>Train</span>
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-color" style="background: #45B7D1;"></div>
+                        <span>Bus</span>
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-color" style="background: #96CEB4;"></div>
+                        <span>Car Rental</span>
+                    </div>
+                </div>
+                <div class="map-toggle">
+                    <button onclick="toggleMapView()">📍 Toggle View</button>
+                </div>
+            </div>
+        </div>
+
         <div class="results" id="results">
             <div class="loading" id="loading">
                 <div class="spinner"></div>
@@ -380,7 +574,25 @@
         </div>
     </div>
 
+    <!-- Google Maps API -->
+    <script async defer 
+        src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBOti4mM-6x9WDnZIjIeyEU21OpBXqWBgw&libraries=geometry,drawing,visualization&callback=initMaps">
+    </script>
+    
+    <!-- Maps Module -->
+    <script src="/static/js/maps.js"></script>
+    
     <script>
+        // Global variables
+        let travelMaps = null;
+        let currentSearchResults = null;
+        
+        // Initialize maps when Google Maps API loads
+        function initMaps() {
+            console.log('Google Maps API loaded, initializing travel maps...');
+            travelMaps = new TravelMaps();
+        }
+        
         // Initialize the app
         document.addEventListener('DOMContentLoaded', function() {
             initializeTravelTypes();
@@ -475,8 +687,14 @@
                     throw new Error(data.message);
                 }
                 
+                // Store results globally  
+                currentSearchResults = data;
+                
                 // Display results
                 displayResults(data.results);
+                
+                // Initialize and show map if we have route data
+                await initializeMap(data);
                 
             } catch (error) {
                 loading.style.display = 'none';
@@ -713,6 +931,153 @@
             }
             
             resultsContent.innerHTML = html;
+        }
+        
+        // Initialize map with search results
+        async function initializeMap(searchData) {
+            if (!travelMaps || !searchData.results) return;
+            
+            try {
+                // Show map section
+                const mapSection = document.getElementById('map-section');
+                mapSection.style.display = 'block';
+                
+                // Initialize map if not already done
+                if (!travelMaps.map) {
+                    await travelMaps.initializeMap('travel-map', {
+                        center: { lat: 40.7128, lng: -74.0060 },
+                        zoom: 4
+                    });
+                }
+                
+                // Extract route data from search results
+                const routeData = extractRouteFromResults(searchData);
+                
+                if (routeData && routeData.legs.length > 0) {
+                    // Visualize the route
+                    await travelMaps.visualizeRoute(routeData);
+                    
+                    // Add hotel markers if available
+                    if (searchData.results.hotels && searchData.results.hotels.results) {
+                        addHotelMarkers(searchData.results.hotels.results);
+                    }
+                    
+                    // Add activity markers if available
+                    if (searchData.results.tours_activities && searchData.results.tours_activities.results) {
+                        addActivityMarkers(searchData.results.tours_activities.results);
+                    }
+                }
+                
+                console.log('Map initialized with search results');
+                
+            } catch (error) {
+                console.error('Map initialization failed:', error);
+            }
+        }
+        
+        // Extract route data from search results
+        function extractRouteFromResults(searchData) {
+            const origin = currentSearchResults?.search_params?.origin;
+            const destination = currentSearchResults?.search_params?.destination;
+            
+            if (!origin || !destination) return null;
+            
+            // Create route legs from available transportation options
+            const legs = [];
+            
+            // Add flight leg if available
+            if (searchData.results?.flights?.results?.[0]) {
+                const flight = searchData.results.flights.results[0];
+                legs.push({
+                    origin: origin,
+                    destination: destination,
+                    transport_type: 'flight',
+                    cost: flight.price || '$0',
+                    duration: flight.duration || '0h',
+                    carbon_footprint: '255 kg CO₂' // Estimated
+                });
+            }
+            
+            // Add ground transport alternatives
+            if (searchData.results?.ground_transportation?.results) {
+                searchData.results.ground_transportation.results.slice(0, 2).forEach(transport => {
+                    legs.push({
+                        origin: origin,
+                        destination: destination,
+                        transport_type: transport.type?.toLowerCase().replace(' ', '_') || 'ground',
+                        cost: transport.price || transport.price_estimate || '$0',
+                        duration: transport.duration || '0h', 
+                        carbon_footprint: '100 kg CO₂' // Estimated
+                    });
+                });
+            }
+            
+            return legs.length > 0 ? { legs } : null;
+        }
+        
+        // Add hotel markers to map
+        function addHotelMarkers(hotels) {
+            if (!travelMaps || !hotels) return;
+            
+            hotels.slice(0, 5).forEach((hotel, index) => {
+                // Use destination coordinates (simplified)
+                const destination = currentSearchResults?.search_params?.destination;
+                const coords = travelMaps.geocodeLocation(destination || 'New York');
+                
+                // Add small random offset for visibility
+                const lat = coords.lat + (Math.random() - 0.5) * 0.01;
+                const lng = coords.lng + (Math.random() - 0.5) * 0.01;
+                
+                travelMaps.addMarker(
+                    { lat, lng },
+                    {
+                        title: hotel.name,
+                        type: 'hotel',
+                        content: `${hotel.name}<br>Rating: ${hotel.rating}⭐<br>Price: ${hotel.price_per_night}/night`,
+                        rating: hotel.rating,
+                        price: hotel.price_per_night,
+                        bookingUrl: hotel.booking_url
+                    }
+                );
+            });
+        }
+        
+        // Add activity markers to map
+        function addActivityMarkers(activities) {
+            if (!travelMaps || !activities) return;
+            
+            activities.slice(0, 3).forEach((activity, index) => {
+                const destination = currentSearchResults?.search_params?.destination;
+                const coords = travelMaps.geocodeLocation(destination || 'New York');
+                
+                // Add random offset
+                const lat = coords.lat + (Math.random() - 0.5) * 0.015;
+                const lng = coords.lng + (Math.random() - 0.5) * 0.015;
+                
+                travelMaps.addMarker(
+                    { lat, lng },
+                    {
+                        title: activity.name,
+                        type: 'attraction',
+                        content: `${activity.name}<br>Type: ${activity.type}<br>Duration: ${activity.duration}<br>Price: ${activity.price}`,
+                        rating: activity.rating,
+                        price: activity.price,
+                        bookingUrl: activity.booking_url
+                    }
+                );
+            });
+        }
+        
+        // Toggle map view
+        function toggleMapView() {
+            if (!travelMaps || !travelMaps.map) return;
+            
+            const currentZoom = travelMaps.map.getZoom();
+            if (currentZoom < 10) {
+                travelMaps.map.setZoom(12);
+            } else {
+                travelMaps.fitMapToMarkers();
+            }
         }
     </script>
 </body>
