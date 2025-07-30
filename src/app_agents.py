@@ -10,6 +10,7 @@ from datetime import datetime
 from typing import Dict, List, Optional
 from flask import Flask, render_template, request, jsonify
 import logging
+import os
 
 # Import our agent coordinator
 from agents.agent_coordinator import AgentCoordinator
@@ -18,7 +19,12 @@ from agents.agent_coordinator import AgentCoordinator
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-app = Flask(__name__)
+# Get the parent directory for templates and static files
+parent_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+
+app = Flask(__name__, 
+            template_folder=os.path.join(parent_dir, 'templates'),
+            static_folder=os.path.join(parent_dir, 'static'))
 
 # Initialize the agent coordinator
 coordinator = AgentCoordinator()

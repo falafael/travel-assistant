@@ -31,16 +31,41 @@ A comprehensive travel planning assistant that fetches real-time data from trave
 ## Quick Start
 
 ```bash
-# Clone the repository
-git clone <repository-url>
+# Clone the repository  
+git clone https://github.com/falafael/travel-assistant.git
 cd travel-assistant
 
 # Install dependencies
 pip install -r requirements.txt
 
-# Run the application
-python src/app.py
+# Set up Google Maps API key (for map features)
+# 1. Go to https://console.cloud.google.com/
+# 2. Create a new project or select existing
+# 3. Enable Maps JavaScript API and Places API
+# 4. Create credentials (API key)
+# 5. Replace YOUR_GOOGLE_MAPS_API_KEY in templates/index.html
+
+# Run the agent-based application
+python src/app_agents.py
 ```
+
+## Configuration
+
+### Google Maps API Setup
+1. Visit [Google Cloud Console](https://console.cloud.google.com/)
+2. Create or select a project
+3. Enable the following APIs:
+   - Maps JavaScript API
+   - Places API  
+   - Directions API
+   - Geocoding API
+4. Create an API key in Credentials
+5. Replace `YOUR_GOOGLE_MAPS_API_KEY` in `templates/index.html`
+
+### Optional: Restrict API Key
+For security, restrict your API key to:
+- HTTP referrers (websites): `localhost:5000/*`, `yourdomain.com/*`
+- APIs: Maps JavaScript API, Places API, Directions API, Geocoding API
 
 ## Project Structure
 
